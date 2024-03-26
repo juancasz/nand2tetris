@@ -44,19 +44,44 @@ func (c CommandType) String() string {
 	return []string{"C_ARITHMETIC", "C_PUSH", "C_POP", "C_LABEL", "C_GOTO", "C_IF", "C_FUNCTION", "C_RETURN", "C_CALL"}[c]
 }
 
-var arithmeticCommands = map[string]struct{}{
-	"add": {},
-	"sub": {},
-	"neg": {},
-	"eq":  {},
-	"gt":  {},
-	"lt":  {},
-	"and": {},
-	"or":  {},
-	"not": {},
+var arithmeticCommands = map[string]string{
+	add: `
+@SP
+A=M-2
+D=M
+@SP
+A=M-1
+D=D+M
+@SP
+A=M
+M=D
+@SP
+M=M+1
+`,
+	sub: ``,
+	neg: ``,
+	eq:  ``,
+	gt:  ``,
+	lt:  ``,
+	and: ``,
+	or:  ``,
+	not: ``,
 }
 
-// memory access command
+// arithmetic commands
+const (
+	add = "add"
+	sub = "sub"
+	neg = "neg"
+	eq  = "eq"
+	gt  = "gt"
+	lt  = "lt"
+	and = "and"
+	or  = "or"
+	not = "not"
+)
+
+// memory access commands
 const (
 	pop  = "pop"
 	push = "push"
@@ -158,6 +183,9 @@ func (p *parser) Arg1() (string, error) {
 
 func (p *parser) Arg2() (int, error) {
 	if p.currentCommand.commandType != C_POP && p.currentCommand.commandType != C_PUSH {
+		return 0, fmt.Errorf("missing arg2")
+	}
+	if len(p.currentCommand.args) < 3 {
 		return 0, fmt.Errorf("missing arg2")
 	}
 	arg2, err := strconv.Atoi(p.currentCommand.args[2])
