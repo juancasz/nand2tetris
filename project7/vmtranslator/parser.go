@@ -26,67 +26,6 @@ type command struct {
 	args        []string
 }
 
-type CommandType int
-
-const (
-	C_ARITHMETIC CommandType = iota
-	C_PUSH
-	C_POP
-	C_LABEL
-	C_GOTO
-	C_IF
-	C_FUNCTION
-	C_RETURN
-	C_CALL
-)
-
-func (c CommandType) String() string {
-	return []string{"C_ARITHMETIC", "C_PUSH", "C_POP", "C_LABEL", "C_GOTO", "C_IF", "C_FUNCTION", "C_RETURN", "C_CALL"}[c]
-}
-
-var arithmeticCommands = map[string]string{
-	add: `
-@SP
-A=M-2
-D=M
-@SP
-A=M-1
-D=D+M
-@SP
-A=M
-M=D
-@SP
-M=M+1
-`,
-	sub: ``,
-	neg: ``,
-	eq:  ``,
-	gt:  ``,
-	lt:  ``,
-	and: ``,
-	or:  ``,
-	not: ``,
-}
-
-// arithmetic commands
-const (
-	add = "add"
-	sub = "sub"
-	neg = "neg"
-	eq  = "eq"
-	gt  = "gt"
-	lt  = "lt"
-	and = "and"
-	or  = "or"
-	not = "not"
-)
-
-// memory access commands
-const (
-	pop  = "pop"
-	push = "push"
-)
-
 func NewParser(inputFile string) (*parser, error) {
 	file, err := os.Open(inputFile)
 	if err != nil {
@@ -125,16 +64,7 @@ func (p *parser) Advance() error {
 			continue
 		}
 
-		if len(line) >= 2 && string(line[:2]) == "//" {
-			continue
-		}
-
 		break
-	}
-
-	if strings.Contains(line, "//") {
-		indexComment := strings.Index(line, "//")
-		line = strings.ReplaceAll(line, string(line[indexComment:]), "")
 	}
 
 	p.currentCommand.line = line
@@ -143,16 +73,27 @@ func (p *parser) Advance() error {
 
 // CommandType returns the type of the command and set the args and the type of the current command in memory
 func (p *parser) CommandType() (CommandType, error) {
+	var commandType CommandType
+	defer func() {
+		p.currentCommand.commandType = commandType
+	}()
+
+	if len(p.currentCommand.line) >= 2 && string(p.currentCommand.line[:2]) == "//" {
+		commandType = C_COMMENT
+		return commandType, nil
+	}
+
+	if strings.Contains(p.currentCommand.line, "//") {
+		indexComment := strings.Index(p.currentCommand.line, "//")
+		p.currentCommand.line = strings.ReplaceAll(p.currentCommand.line, string(p.currentCommand.line[indexComment:]), "")
+	}
+
 	args := p.regexCommands.FindAllString(p.currentCommand.line, -1)
 	if args == nil {
 		return 0, fmt.Errorf("command not found")
 	}
 	p.currentCommand.args = args
 
-	var commandType CommandType
-	defer func() {
-		p.currentCommand.commandType = commandType
-	}()
 	if _, ok := arithmeticCommands[args[0]]; ok {
 		commandType = C_ARITHMETIC
 		return commandType, nil
