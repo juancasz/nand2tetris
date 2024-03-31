@@ -1,23 +1,17 @@
 package vmtranslator
 
-type CommandType int
-
+// arithmetic commands
 const (
-	C_ARITHMETIC CommandType = iota
-	C_PUSH
-	C_POP
-	C_LABEL
-	C_GOTO
-	C_IF
-	C_FUNCTION
-	C_RETURN
-	C_CALL
-	C_COMMENT
+	add = "add"
+	sub = "sub"
+	neg = "neg"
+	eq  = "eq"
+	gt  = "gt"
+	lt  = "lt"
+	and = "and"
+	or  = "or"
+	not = "not"
 )
-
-func (c CommandType) String() string {
-	return []string{"C_ARITHMETIC", "C_PUSH", "C_POP", "C_LABEL", "C_GOTO", "C_IF", "C_FUNCTION", "C_RETURN", "C_CALL", "C_COMMENT"}[c]
-}
 
 var arithmeticCommands = map[string]string{
 	add: `
@@ -193,22 +187,3 @@ M=!M
 	
 `,
 }
-
-// arithmetic commands
-const (
-	add = "add"
-	sub = "sub"
-	neg = "neg"
-	eq  = "eq"
-	gt  = "gt"
-	lt  = "lt"
-	and = "and"
-	or  = "or"
-	not = "not"
-)
-
-// memory access commands
-const (
-	pop  = "pop"
-	push = "push"
-)
