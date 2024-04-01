@@ -18,33 +18,33 @@ var arithmeticCommands = map[string]string{
 //// add ////
 // D=y
 @SP
-A=M-1
+AM=M-1
 D=M
 
 // x=x+y
-A=A-1
+@SP
+AM=M-1
 M=M+D
 
-// SP--
+// SP++
 @SP
-M=M-1
-
+M=M+1
 `,
 	sub: `
 //// sub ////
 // D=y
 @SP
-A=M-1
+AM=M-1
 D=M
 
-// x=x-y
-A=A-1
+// x=x+y
+@SP
+AM=M-1
 M=M-D
 
-// SP--
+// SP++
 @SP
-M=M-1
-	
+M=M+1
 `,
 	neg: `
 //// neg ////
@@ -52,100 +52,99 @@ M=M-1
 @SP
 A=M-1
 M=-M
-
 `,
 	eq: `
 //// eq	////
 // D=y
 @SP
-A=M-1
+AM=M-1
 D=M
 
 // x==y
-A=A-1
+@SP
+AM=M-1
 D=M-D
 
-@TRUE%[1]v
+@TRUE%[1]d
 D;JEQ
 
 @SP
-A=M-2
+A=M
 M=0
-@END%[1]v
-0; JMP
+@END%[1]d
+0;JMP
 
-(TRUE%[1]v)
+(TRUE%[1]d)
 @SP
-A=M-2
+A=M
 M=-1
 
-// SP--
-(END%[1]v)
+// SP++
+(END%[1]d)
 @SP
-M=M-1
-
+M=M+1
 `,
 	gt: `
 //// gt	////
 // D=y
 @SP
-A=M-1
+AM=M-1
 D=M
 
 // x>y
-A=A-1
+@SP
+AM=M-1
 D=M-D
 
-@TRUE%[1]v
+@TRUE%[1]d
 D;JGT
 
 @SP
-A=M-2
+A=M
 M=0
-@END%[1]v
-0; JMP
+@END%[1]d
+0;JMP
 
-(TRUE%[1]v)
+(TRUE%[1]d)
 @SP
-A=M-2
+A=M
 M=-1
 
-// SP--
-(END%[1]v)
+// SP++
+(END%[1]d)
 @SP
-M=M-1
-
+M=M+1
 `,
 	lt: `
 //// lt	////
 // D=y
 @SP
-A=M-1
+AM=M-1
 D=M
 
 // x<y
-A=A-1
+@SP
+AM=M-1
 D=M-D
 
-@TRUE%[1]v
+@TRUE%[1]d
 D;JLT
 
 @SP
-A=M-2
+A=M
 M=0
-@END%[1]v
-0; JMP
+@END%[1]d
+0;JMP
 
-(TRUE%[1]v)
+(TRUE%[1]d)
 @SP
-A=M-2
+A=M
 M=-1
 
-// SP--
-(END%[1]v)
+// SP++
+(END%[1]d)
 @SP
-M=M-1
-		
+M=M+1	
 `,
 	and: `
 //// and ////
@@ -161,7 +160,6 @@ M=M&D
 // SP--
 @SP
 M=M-1
-
 `,
 	or: `
 //// or ////
@@ -177,13 +175,11 @@ M=M|D
 // SP--
 @SP
 M=M-1
-
 `,
 	not: `
 //// not ////
 @SP
 A=M-1
-M=!M
-	
+M=!M	
 `,
 }

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path/filepath"
 	"regexp"
 	"strconv"
 	"strings"
@@ -12,7 +13,7 @@ import (
 
 var ErrNoMoreCommands = errors.New("no more commands")
 
-type parser struct {
+type Parser struct {
 	path           string
 	fileScanner    *bufio.Scanner
 	FileOS         *os.File
@@ -26,7 +27,11 @@ type command struct {
 	args        []string
 }
 
-func NewParser(inputFile string) (*parser, error) {
+func NewParser(inputFile string) (*Parser, error) {
+	if ext := filepath.Ext(inputFile); !strings.EqualFold(ext, ".vm") {
+		return nil, fmt.Errorf("unsupported extension %s", ext)
+	}
+
 	file, err := os.Open(inputFile)
 	if err != nil {
 		return nil, err
@@ -40,7 +45,7 @@ func NewParser(inputFile string) (*parser, error) {
 		return nil, err
 	}
 
-	return &parser{
+	return &Parser{
 		path:          inputFile,
 		fileScanner:   fileScanner,
 		FileOS:        file,
@@ -48,11 +53,11 @@ func NewParser(inputFile string) (*parser, error) {
 	}, nil
 }
 
-func (p *parser) hasMoreCommands() bool {
+func (p *Parser) hasMoreCommands() bool {
 	return p.fileScanner.Scan()
 }
 
-func (p *parser) Advance() error {
+func (p *Parser) Advance() error {
 	var line string
 	for {
 		if !p.hasMoreCommands() {
@@ -72,7 +77,7 @@ func (p *parser) Advance() error {
 }
 
 // CommandType returns the type of the command and set the args and the type of the current command in memory
-func (p *parser) CommandType() (CommandType, error) {
+func (p *Parser) CommandType() (CommandType, error) {
 	var commandType CommandType
 	defer func() {
 		p.currentCommand.commandType = commandType
@@ -98,11 +103,11 @@ func (p *parser) CommandType() (CommandType, error) {
 		commandType = C_ARITHMETIC
 		return commandType, nil
 	}
-	if args[0] == push {
+	if args[0] == Push {
 		commandType = C_PUSH
 		return commandType, nil
 	}
-	if args[0] == pop {
+	if args[0] == Pop {
 		commandType = C_POP
 		return commandType, nil
 	}
@@ -110,10 +115,12 @@ func (p *parser) CommandType() (CommandType, error) {
 	return 0, fmt.Errorf("command type not found")
 }
 
-func (p *parser) Arg1() (string, error) {
+func (p *Parser) Arg1() (string, error) {
 	switch p.currentCommand.commandType {
 	case C_ARITHMETIC:
 		return p.currentCommand.args[0], nil
+	case C_COMMENT:
+		return p.currentCommand.line, nil
 	default:
 		if len(p.currentCommand.args) < 2 {
 			return "", fmt.Errorf("missing arg1")
@@ -122,7 +129,7 @@ func (p *parser) Arg1() (string, error) {
 	}
 }
 
-func (p *parser) Arg2() (int, error) {
+func (p *Parser) Arg2() (int, error) {
 	if p.currentCommand.commandType != C_POP && p.currentCommand.commandType != C_PUSH {
 		return 0, fmt.Errorf("missing arg2")
 	}
@@ -134,4 +141,8 @@ func (p *parser) Arg2() (int, error) {
 		return 0, err
 	}
 	return arg2, nil
+}
+
+func (p *Parser) Close() error {
+	return p.FileOS.Close()
 }

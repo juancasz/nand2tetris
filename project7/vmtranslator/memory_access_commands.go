@@ -2,8 +2,8 @@ package vmtranslator
 
 // memory access commands
 const (
-	pop  = "pop"
-	push = "push"
+	Pop  = "pop"
+	Push = "push"
 )
 
 // memory segments
@@ -39,7 +39,6 @@ A=M
 M=D
 @SP
 M=M+1
-	
 `
 	pushConstant = `
 //// push constant %[1]d ////
@@ -50,7 +49,6 @@ A=M
 M=D
 @SP
 M=M+1
-
 `
 	pushMemoryDynamic = `
 //// push %[1]s %[2]d ////
@@ -65,7 +63,6 @@ A=M
 M=D
 @SP
 M=M+1
-
 `
 
 	pushPointerTemp = `
@@ -80,7 +77,6 @@ A=M
 M=D
 @SP
 M=M+1
-
 `
 	popStatic = `
 //// pop static %[1]d ////
@@ -89,7 +85,6 @@ AM=M-1
 D=M
 @%[2]s.%[1]d
 M=D
-
 `
 	popMemoryDynamic = `
 //// pop %[1]s %[2]d ////
@@ -106,7 +101,6 @@ D=M
 @R13
 A=M
 M=D
-
 `
 	popPointerTemp = `
 //// pop %[1]s %[2]d ////
@@ -121,7 +115,6 @@ AM=M-1
 D=M
 @R13
 A=M
-M=D
-	
+M=D	
 `
 )
