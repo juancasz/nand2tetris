@@ -1,2 +1,2 @@
 #!/bin/bash
-GOOS=linux GOARCH=amd64 go build -C ../cmd -o ../vmtranslator
+GOOS=linux GOARCH=amd64 go build -C ../cmd -o ../VMTranslator 

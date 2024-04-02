@@ -10,16 +10,21 @@ import (
 )
 
 func main() {
-	path := flag.String("path", "no path", "path hack code file")
 	flag.Parse()
+	var path string
+	if len(flag.Args()) > 0 {
+		path = flag.Args()[0]
+	} else {
+		log.Fatal("no file provided")
+	}
 
-	parser, err := vmtranslator.NewParser(*path)
+	parser, err := vmtranslator.NewParser(path)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer parser.Close()
 
-	dir, file := filepath.Split(*path)
+	dir, file := filepath.Split(path)
 	file = strings.ReplaceAll(file, filepath.Ext(file), ".asm")
 
 	codeWriter, err := vmtranslator.NewCodeWriter(filepath.Join(dir, file))
