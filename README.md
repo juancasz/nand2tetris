@@ -8,3 +8,4 @@ My solutions to https://www.nand2tetris.org/
 - [Project 4](project4/README.md)
 - [Project 5](project5/README.md)
 - [Project 6](project6/README.md)
+- [Project 7](project7/README.md)
