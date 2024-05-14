@@ -35,6 +35,27 @@ func NewCodeWriter(filename string) (*CodeWriter, error) {
 	}, nil
 }
 
+func (c *CodeWriter) WriteInit() error {
+	if _, err := c.Writer.WriteString(`
+@256
+D=A
+@SP
+M=D
+	`); err != nil {
+		return err
+	}
+
+	if err := c.WriteFunction("OS", 0); err != nil {
+		return err
+	}
+
+	if err := c.WriteCall("Sys.init", 0); err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (c *CodeWriter) WriteArithmetic(command string) error {
 	assembly, ok := arithmeticCommands[command]
 	if !ok {
@@ -119,6 +140,20 @@ M=D
 	}
 
 	c.lineCounter++
+	return nil
+}
+
+func (c *CodeWriter) WriteFunction(functionName string, numLocals int) error {
+	if _, err := c.WriteString(fmt.Sprintf("(%s)", functionName)); err != nil {
+		return err
+	}
+
+	for i := 1; i <= numLocals; i++ {
+		if err := c.writePush(constant, 0); err != nil {
+			return err
+		}
+	}
+
 	return nil
 }
 
