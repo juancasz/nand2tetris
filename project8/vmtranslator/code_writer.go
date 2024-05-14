@@ -11,8 +11,9 @@ import (
 type CodeWriter struct {
 	FileOS *os.File
 	*bufio.Writer
-	lineCounter int
-	filename    string
+	lineCounter  int
+	filename     string
+	functionName string
 }
 
 func NewCodeWriter(filename string) (*CodeWriter, error) {
@@ -144,6 +145,8 @@ M=D
 }
 
 func (c *CodeWriter) WriteFunction(functionName string, numLocals int) error {
+	c.functionName = functionName
+
 	if _, err := c.WriteString(fmt.Sprintf("(%s)", functionName)); err != nil {
 		return err
 	}
@@ -152,6 +155,99 @@ func (c *CodeWriter) WriteFunction(functionName string, numLocals int) error {
 		if err := c.writePush(constant, 0); err != nil {
 			return err
 		}
+	}
+
+	return nil
+}
+
+func (c *CodeWriter) WriteReturn() error {
+	if _, err := c.WriteString(`
+// FRAME = LCL
+// FRAME is R13
+@LCL
+D=M
+@R13
+M=D
+
+// RET = *(FRAME-5)
+// RET is R14
+@5
+A=D-A
+D=M
+@R14
+M=D
+
+// *ARG = pop()
+@SP
+AM=M-1
+D=M
+@ARG
+A=M
+M=D
+
+// SP = ARG+1
+@ARG
+D=M+1
+@SP
+M=D
+	`); err != nil {
+		return err
+	}
+
+	// Restore THAT, THIS, ARG, and LCL segments.
+	for _, segment := range []string{memoryAccessDirections[that], memoryAccessDirections[this], memoryAccessDirections[argument], memoryAccessDirections[local]} {
+		if _, err := c.WriteString(fmt.Sprintf(`
+@R13
+AM=M-1
+D=M
+@%[1]s
+M=D
+		`, segment)); err != nil {
+			return err
+		}
+	}
+
+	// goto RET
+	if _, err := c.WriteString(`
+@R14
+A=M
+0;JMP
+	`); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (c *CodeWriter) WriteLabel(label string) error {
+	if _, err := c.WriteString(fmt.Sprintf("(%s$%s)", c.functionName, label)); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c *CodeWriter) WriteGoTo(label string) error {
+	labelName := c.functionName + "$" + label
+	if _, err := c.WriteString(fmt.Sprintf(`
+@%[1]s
+0;JMP
+	`, labelName)); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (c *CodeWriter) WriteIf(label string) error {
+	labelName := c.functionName + "$" + label
+
+	if _, err := c.WriteString(fmt.Sprintf(`
+@SP
+AM=M-1
+D=M
+@%[1]s
+D;JNE
+		`, labelName)); err != nil {
+		return err
 	}
 
 	return nil
