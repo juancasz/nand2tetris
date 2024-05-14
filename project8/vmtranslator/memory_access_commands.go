@@ -6,6 +6,16 @@ const (
 	Push = "push"
 )
 
+// function commands and branching logic
+const (
+	Label    = "label"
+	GoTo     = "goto"
+	IfGoTo   = "if-goto"
+	Function = "function"
+	Return   = "return"
+	Call     = "call"
+)
+
 // memory segments
 const (
 	local    = "local"

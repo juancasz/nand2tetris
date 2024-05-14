@@ -111,6 +111,30 @@ func (p *Parser) CommandType() (CommandType, error) {
 		commandType = C_POP
 		return commandType, nil
 	}
+	if args[0] == Label {
+		commandType = C_LABEL
+		return commandType, nil
+	}
+	if args[0] == GoTo {
+		commandType = C_GOTO
+		return commandType, nil
+	}
+	if args[0] == IfGoTo {
+		commandType = C_IF
+		return commandType, nil
+	}
+	if args[0] == Function {
+		commandType = C_FUNCTION
+		return commandType, nil
+	}
+	if args[0] == Return {
+		commandType = C_RETURN
+		return commandType, nil
+	}
+	if args[0] == Call {
+		commandType = C_CALL
+		return commandType, nil
+	}
 
 	return 0, fmt.Errorf("command type not found")
 }
