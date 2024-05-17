@@ -36,13 +36,17 @@ func NewCodeWriter(filename string) (*CodeWriter, error) {
 	}, nil
 }
 
+func (c *CodeWriter) SetFile(filename string) error {
+	return nil
+}
+
 func (c *CodeWriter) WriteInit() error {
 	if _, err := c.Writer.WriteString(`
 @256
 D=A
 @SP
 M=D
-	`); err != nil {
+`); err != nil {
 		return err
 	}
 
@@ -113,7 +117,7 @@ D=D-A
 D=D-A
 @ARG
 M=D
-	`, numArgs)); err != nil {
+`, numArgs)); err != nil {
 		return err
 	}
 
@@ -123,7 +127,7 @@ M=D
 D=M
 @LCL
 M=D
-	`); err != nil {
+`); err != nil {
 		return err
 	}
 
@@ -131,7 +135,7 @@ M=D
 	if _, err := c.Writer.WriteString(fmt.Sprintf(`
 @%[1]s
 0;JMP
-	`, functionName)); err != nil {
+`, functionName)); err != nil {
 		return err
 	}
 
@@ -190,7 +194,7 @@ M=D
 D=M+1
 @SP
 M=D
-	`); err != nil {
+`); err != nil {
 		return err
 	}
 
@@ -202,7 +206,7 @@ AM=M-1
 D=M
 @%[1]s
 M=D
-		`, segment)); err != nil {
+`, segment)); err != nil {
 			return err
 		}
 	}
@@ -212,7 +216,7 @@ M=D
 @R14
 A=M
 0;JMP
-	`); err != nil {
+`); err != nil {
 		return err
 	}
 
@@ -231,7 +235,7 @@ func (c *CodeWriter) WriteGoTo(label string) error {
 	if _, err := c.WriteString(fmt.Sprintf(`
 @%[1]s
 0;JMP
-	`, labelName)); err != nil {
+`, labelName)); err != nil {
 		return err
 	}
 	return nil
@@ -246,7 +250,7 @@ AM=M-1
 D=M
 @%[1]s
 D;JNE
-		`, labelName)); err != nil {
+`, labelName)); err != nil {
 		return err
 	}
 
