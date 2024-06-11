@@ -1,10 +1,17 @@
 
+//// SP = 256 ////
 @256
 D=A
 @SP
 M=D
+
+//// FUNCTION ////
 (OS)
-@Sys.init$ret.1
+
+//// CALL Sys.init 0 ////
+
+//// push Sys.init$ret.0
+@Sys.init$ret.0
 D=A
 @SP
 A=M
@@ -12,38 +19,43 @@ M=D
 @SP
 M=M+1
 
+//// push LCL
 @LCL
-D=A
+D=M
 @SP
 A=M
 M=D
 @SP
 M=M+1
 
+//// push ARG
 @ARG
-D=A
+D=M
 @SP
 A=M
 M=D
 @SP
 M=M+1
 
+//// push THIS
 @THIS
-D=A
+D=M
 @SP
 A=M
 M=D
 @SP
 M=M+1
 
+//// push THAT
 @THAT
-D=A
+D=M
 @SP
 A=M
 M=D
 @SP
 M=M+1
 
+//// ARG = SP-5-num_args ////
 @SP
 D=M
 @5
@@ -53,14 +65,18 @@ D=D-A
 @ARG
 M=D
 
+//// LCL = SP ////
 @SP
 D=M
 @LCL
 M=D
 
+//// goto f ////
 @Sys.init
 0;JMP
-(Sys.init$ret.1)
+
+//// (return-address) ////
+(Sys.init$ret.0)
 // This file is part of www.nand2tetris.org
 // and the book "The Elements of Computing Systems"
 // by Nisan and Schocken, MIT Press.
@@ -69,7 +85,10 @@ M=D
 // n is given in argument[0].  Called by the Sys.init function 
 // (part of the Sys.vm file), which also pushes the argument[0] 
 // parameter before this code starts running.
+
+//// FUNCTION ////
 (Main.fibonacci)
+
 //// push argument 0 ////
 @0
 D=A
@@ -144,6 +163,7 @@ M=D
 @SP
 M=M+1
 
+//// RETURN ////
 // FRAME = LCL
 // FRAME is R13
 @LCL
@@ -173,30 +193,35 @@ D=M+1
 @SP
 M=D
 
+// Restore THAT of the caller
 @R13
 AM=M-1
 D=M
 @THAT
 M=D
 
+// Restore THIS of the caller
 @R13
 AM=M-1
 D=M
 @THIS
 M=D
 
+// Restore ARG of the caller
 @R13
 AM=M-1
 D=M
 @ARG
 M=D
 
+// Restore LCL of the caller
 @R13
 AM=M-1
 D=M
 @LCL
 M=D
 
+//// goto RET ////
 @R14
 A=M
 0;JMP
@@ -238,6 +263,76 @@ M=M-D
 @SP
 M=M+1
 
+//// CALL Main.fibonacci 1 ////
+
+//// push Main.fibonacci$ret.1
+@Main.fibonacci$ret.1
+D=A
+@SP
+A=M
+M=D
+@SP
+M=M+1
+
+//// push LCL
+@LCL
+D=M
+@SP
+A=M
+M=D
+@SP
+M=M+1
+
+//// push ARG
+@ARG
+D=M
+@SP
+A=M
+M=D
+@SP
+M=M+1
+
+//// push THIS
+@THIS
+D=M
+@SP
+A=M
+M=D
+@SP
+M=M+1
+
+//// push THAT
+@THAT
+D=M
+@SP
+A=M
+M=D
+@SP
+M=M+1
+
+//// ARG = SP-5-num_args ////
+@SP
+D=M
+@5
+D=D-A
+@1
+D=D-A
+@ARG
+M=D
+
+//// LCL = SP ////
+@SP
+D=M
+@LCL
+M=D
+
+//// goto f ////
+@Main.fibonacci
+0;JMP
+
+//// (return-address) ////
+(Main.fibonacci$ret.1)
+
 //// push argument 0 ////
 @0
 D=A
@@ -275,6 +370,76 @@ M=M-D
 @SP
 M=M+1
 
+//// CALL Main.fibonacci 1 ////
+
+//// push Main.fibonacci$ret.2
+@Main.fibonacci$ret.2
+D=A
+@SP
+A=M
+M=D
+@SP
+M=M+1
+
+//// push LCL
+@LCL
+D=M
+@SP
+A=M
+M=D
+@SP
+M=M+1
+
+//// push ARG
+@ARG
+D=M
+@SP
+A=M
+M=D
+@SP
+M=M+1
+
+//// push THIS
+@THIS
+D=M
+@SP
+A=M
+M=D
+@SP
+M=M+1
+
+//// push THAT
+@THAT
+D=M
+@SP
+A=M
+M=D
+@SP
+M=M+1
+
+//// ARG = SP-5-num_args ////
+@SP
+D=M
+@5
+D=D-A
+@1
+D=D-A
+@ARG
+M=D
+
+//// LCL = SP ////
+@SP
+D=M
+@LCL
+M=D
+
+//// goto f ////
+@Main.fibonacci
+0;JMP
+
+//// (return-address) ////
+(Main.fibonacci$ret.2)
+
 //// add ////
 // D=y
 @SP
@@ -290,6 +455,7 @@ M=M+D
 @SP
 M=M+1
 
+//// RETURN ////
 // FRAME = LCL
 // FRAME is R13
 @LCL
@@ -319,30 +485,35 @@ D=M+1
 @SP
 M=D
 
+// Restore THAT of the caller
 @R13
 AM=M-1
 D=M
 @THAT
 M=D
 
+// Restore THIS of the caller
 @R13
 AM=M-1
 D=M
 @THIS
 M=D
 
+// Restore ARG of the caller
 @R13
 AM=M-1
 D=M
 @ARG
 M=D
 
+// Restore LCL of the caller
 @R13
 AM=M-1
 D=M
 @LCL
 M=D
 
+//// goto RET ////
 @R14
 A=M
 0;JMP
@@ -354,7 +525,10 @@ A=M
 // function, which computes the n'th element of the Fibonacci series.
 // Note that by convention, the Sys.init function is called "automatically" 
 // by the bootstrap code.
+
+//// FUNCTION ////
 (Sys.init)
+
 //// push constant 4 ////
 @4
 D=A
@@ -363,6 +537,76 @@ A=M
 M=D
 @SP
 M=M+1
+
+//// CALL Main.fibonacci 1 ////
+
+//// push Main.fibonacci$ret.3
+@Main.fibonacci$ret.3
+D=A
+@SP
+A=M
+M=D
+@SP
+M=M+1
+
+//// push LCL
+@LCL
+D=M
+@SP
+A=M
+M=D
+@SP
+M=M+1
+
+//// push ARG
+@ARG
+D=M
+@SP
+A=M
+M=D
+@SP
+M=M+1
+
+//// push THIS
+@THIS
+D=M
+@SP
+A=M
+M=D
+@SP
+M=M+1
+
+//// push THAT
+@THAT
+D=M
+@SP
+A=M
+M=D
+@SP
+M=M+1
+
+//// ARG = SP-5-num_args ////
+@SP
+D=M
+@5
+D=D-A
+@1
+D=D-A
+@ARG
+M=D
+
+//// LCL = SP ////
+@SP
+D=M
+@LCL
+M=D
+
+//// goto f ////
+@Main.fibonacci
+0;JMP
+
+//// (return-address) ////
+(Main.fibonacci$ret.3)
 (Sys.init$WHILE)
 @Sys.init$WHILE
 0;JMP

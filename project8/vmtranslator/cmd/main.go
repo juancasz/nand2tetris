@@ -55,7 +55,7 @@ func main() {
 	}
 	defer codeWriter.Close()
 	if info.IsDir() {
-		if err := codeWriter.WriteInit(); err != nil {
+		if err := codeWriter.WriteBootstrap(); err != nil {
 			log.Fatal(err)
 		}
 	}
@@ -164,6 +164,18 @@ func write(parser *vmtranslator.Parser, codeWriter *vmtranslator.CodeWriter) err
 				return err
 			}
 			if err := codeWriter.WriteFunction(arg1, arg2); err != nil {
+				return err
+			}
+		case vmtranslator.C_CALL:
+			arg1, err := parser.Arg1()
+			if err != nil {
+				return err
+			}
+			arg2, err := parser.Arg2()
+			if err != nil {
+				return err
+			}
+			if err := codeWriter.WriteCall(arg1, arg2); err != nil {
 				return err
 			}
 		case vmtranslator.C_RETURN:

@@ -154,7 +154,7 @@ func (p *Parser) Arg1() (string, error) {
 }
 
 func (p *Parser) Arg2() (int, error) {
-	if p.currentCommand.commandType != C_POP && p.currentCommand.commandType != C_PUSH && p.currentCommand.commandType != C_FUNCTION && p.currentCommand.commandType != C_RETURN {
+	if p.currentCommand.commandType != C_POP && p.currentCommand.commandType != C_PUSH && p.currentCommand.commandType != C_FUNCTION && p.currentCommand.commandType != C_RETURN && p.currentCommand.commandType != C_CALL {
 		return 0, fmt.Errorf("missing arg2")
 	}
 	if len(p.currentCommand.args) < 3 {

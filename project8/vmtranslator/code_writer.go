@@ -12,6 +12,7 @@ type CodeWriter struct {
 	FileOS *os.File
 	*bufio.Writer
 	lineCounter  int
+	labelCounter int
 	filename     string
 	functionName string
 }
@@ -40,8 +41,10 @@ func (c *CodeWriter) SetFile(filename string) error {
 	return nil
 }
 
-func (c *CodeWriter) WriteInit() error {
+func (c *CodeWriter) WriteBootstrap() error {
+	// SP = 256
 	if _, err := c.Writer.WriteString(`
+//// SP = 256 ////
 @256
 D=A
 @SP
@@ -93,22 +96,46 @@ func (c *CodeWriter) WriteComment(comment string) error {
 }
 
 func (c *CodeWriter) WriteCall(functionName string, numArgs int) error {
-	returnLabel := fmt.Sprintf("%s$ret.%d", functionName, c.lineCounter)
+	returnLabel := fmt.Sprintf("%s$ret.%d", functionName, c.labelCounter)
+	c.labelCounter++
+
+	if _, err := c.Writer.WriteString(fmt.Sprintf("\n//// CALL %s %d ////\n", functionName, numArgs)); err != nil {
+		return err
+	}
 
 	// push return label
-	if _, err := c.Writer.WriteString(fmt.Sprintf(pushStack, returnLabel)); err != nil {
+	if _, err := c.Writer.WriteString(fmt.Sprintf(`
+//// push %[1]s
+@%[1]s
+D=A
+@SP
+A=M
+M=D
+@SP
+M=M+1
+`, returnLabel)); err != nil {
 		return err
 	}
 
 	// push LCL, ARG, THIS, and THAT
 	for _, segment := range []string{memoryAccessDirections[local], memoryAccessDirections[argument], memoryAccessDirections[this], memoryAccessDirections[that]} {
-		if _, err := c.Writer.WriteString(fmt.Sprintf(pushStack, segment)); err != nil {
+		if _, err := c.Writer.WriteString(fmt.Sprintf(`
+//// push %[1]s
+@%[1]s
+D=M
+@SP
+A=M
+M=D
+@SP
+M=M+1
+`, segment)); err != nil {
 			return err
 		}
 	}
 
 	// ARG = SP-5-num_args
 	if _, err := c.Writer.WriteString(fmt.Sprintf(`
+//// ARG = SP-5-num_args ////
 @SP
 D=M
 @5
@@ -123,6 +150,7 @@ M=D
 
 	// LCL = SP
 	if _, err := c.Writer.WriteString(`
+//// LCL = SP ////
 @SP
 D=M
 @LCL
@@ -133,6 +161,7 @@ M=D
 
 	// goto f
 	if _, err := c.Writer.WriteString(fmt.Sprintf(`
+//// goto f ////
 @%[1]s
 0;JMP
 `, functionName)); err != nil {
@@ -140,7 +169,10 @@ M=D
 	}
 
 	// (return-address)
-	if _, err := c.Writer.WriteString(fmt.Sprintf("(%s)\n", returnLabel)); err != nil {
+	if _, err := c.Writer.WriteString(fmt.Sprintf(`
+//// (return-address) ////
+(%s)
+`, returnLabel)); err != nil {
 		return err
 	}
 
@@ -151,7 +183,10 @@ M=D
 func (c *CodeWriter) WriteFunction(functionName string, numLocals int) error {
 	c.functionName = functionName
 
-	if _, err := c.WriteString(fmt.Sprintf("(%s)", functionName)); err != nil {
+	if _, err := c.WriteString(fmt.Sprintf(`
+//// FUNCTION ////
+(%s)
+`, functionName)); err != nil {
 		return err
 	}
 
@@ -166,6 +201,7 @@ func (c *CodeWriter) WriteFunction(functionName string, numLocals int) error {
 
 func (c *CodeWriter) WriteReturn() error {
 	if _, err := c.WriteString(`
+//// RETURN ////
 // FRAME = LCL
 // FRAME is R13
 @LCL
@@ -201,6 +237,7 @@ M=D
 	// Restore THAT, THIS, ARG, and LCL segments.
 	for _, segment := range []string{memoryAccessDirections[that], memoryAccessDirections[this], memoryAccessDirections[argument], memoryAccessDirections[local]} {
 		if _, err := c.WriteString(fmt.Sprintf(`
+// Restore %[1]s of the caller
 @R13
 AM=M-1
 D=M
@@ -213,6 +250,7 @@ M=D
 
 	// goto RET
 	if _, err := c.WriteString(`
+//// goto RET ////
 @R14
 A=M
 0;JMP

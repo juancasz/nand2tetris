@@ -88,15 +88,6 @@ M=D
 @SP
 M=M+1
 `
-	pushStack = `
-@%[1]s
-D=A
-@SP
-A=M
-M=D
-@SP
-M=M+1
-`
 	popStatic = `
 //// pop static %[1]d ////
 @SP

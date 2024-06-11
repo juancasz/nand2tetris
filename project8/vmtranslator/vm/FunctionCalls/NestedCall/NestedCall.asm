@@ -1,10 +1,17 @@
 
+//// SP = 256 ////
 @256
 D=A
 @SP
 M=D
+
+//// FUNCTION ////
 (OS)
-@Sys.init$ret.1
+
+//// CALL Sys.init 0 ////
+
+//// push Sys.init$ret.0
+@Sys.init$ret.0
 D=A
 @SP
 A=M
@@ -12,38 +19,43 @@ M=D
 @SP
 M=M+1
 
+//// push LCL
 @LCL
-D=A
+D=M
 @SP
 A=M
 M=D
 @SP
 M=M+1
 
+//// push ARG
 @ARG
-D=A
+D=M
 @SP
 A=M
 M=D
 @SP
 M=M+1
 
+//// push THIS
 @THIS
-D=A
+D=M
 @SP
 A=M
 M=D
 @SP
 M=M+1
 
+//// push THAT
 @THAT
-D=A
+D=M
 @SP
 A=M
 M=D
 @SP
 M=M+1
 
+//// ARG = SP-5-num_args ////
 @SP
 D=M
 @5
@@ -53,20 +65,27 @@ D=D-A
 @ARG
 M=D
 
+//// LCL = SP ////
 @SP
 D=M
 @LCL
 M=D
 
+//// goto f ////
 @Sys.init
 0;JMP
-(Sys.init$ret.1)
+
+//// (return-address) ////
+(Sys.init$ret.0)
 // Sys.vm for NestedCall test.
 // Sys.init()
 //
 // Calls Sys.main() and stores return value in temp 1.
 // Does not return.  (Enters infinite loop.)
+
+//// FUNCTION ////
 (Sys.init)
+
 //// push constant 4000 ////
 @4000
 D=A
@@ -113,6 +132,76 @@ D=M
 A=M
 M=D	
 
+//// CALL Sys.main 0 ////
+
+//// push Sys.main$ret.1
+@Sys.main$ret.1
+D=A
+@SP
+A=M
+M=D
+@SP
+M=M+1
+
+//// push LCL
+@LCL
+D=M
+@SP
+A=M
+M=D
+@SP
+M=M+1
+
+//// push ARG
+@ARG
+D=M
+@SP
+A=M
+M=D
+@SP
+M=M+1
+
+//// push THIS
+@THIS
+D=M
+@SP
+A=M
+M=D
+@SP
+M=M+1
+
+//// push THAT
+@THAT
+D=M
+@SP
+A=M
+M=D
+@SP
+M=M+1
+
+//// ARG = SP-5-num_args ////
+@SP
+D=M
+@5
+D=D-A
+@0
+D=D-A
+@ARG
+M=D
+
+//// LCL = SP ////
+@SP
+D=M
+@LCL
+M=D
+
+//// goto f ////
+@Sys.main
+0;JMP
+
+//// (return-address) ////
+(Sys.main$ret.1)
+
 //// pop temp 1 ////
 @1
 D=A
@@ -136,7 +225,10 @@ M=D
 // Calls Sys.add12(123) and stores return value (135) in temp 0.
 // Returns local 0 + local 1 + local 2 + local 3 + local 4 (456) to confirm
 // that locals were not mangled by function call.
+
+//// FUNCTION ////
 (Sys.main)
+
 //// push constant 0 ////
 @0
 D=A
@@ -309,6 +401,76 @@ M=D
 @SP
 M=M+1
 
+//// CALL Sys.add12 1 ////
+
+//// push Sys.add12$ret.2
+@Sys.add12$ret.2
+D=A
+@SP
+A=M
+M=D
+@SP
+M=M+1
+
+//// push LCL
+@LCL
+D=M
+@SP
+A=M
+M=D
+@SP
+M=M+1
+
+//// push ARG
+@ARG
+D=M
+@SP
+A=M
+M=D
+@SP
+M=M+1
+
+//// push THIS
+@THIS
+D=M
+@SP
+A=M
+M=D
+@SP
+M=M+1
+
+//// push THAT
+@THAT
+D=M
+@SP
+A=M
+M=D
+@SP
+M=M+1
+
+//// ARG = SP-5-num_args ////
+@SP
+D=M
+@5
+D=D-A
+@1
+D=D-A
+@ARG
+M=D
+
+//// LCL = SP ////
+@SP
+D=M
+@LCL
+M=D
+
+//// goto f ////
+@Sys.add12
+0;JMP
+
+//// (return-address) ////
+(Sys.add12$ret.2)
+
 //// pop temp 0 ////
 @0
 D=A
@@ -448,6 +610,7 @@ M=M+D
 @SP
 M=M+1
 
+//// RETURN ////
 // FRAME = LCL
 // FRAME is R13
 @LCL
@@ -477,37 +640,45 @@ D=M+1
 @SP
 M=D
 
+// Restore THAT of the caller
 @R13
 AM=M-1
 D=M
 @THAT
 M=D
 
+// Restore THIS of the caller
 @R13
 AM=M-1
 D=M
 @THIS
 M=D
 
+// Restore ARG of the caller
 @R13
 AM=M-1
 D=M
 @ARG
 M=D
 
+// Restore LCL of the caller
 @R13
 AM=M-1
 D=M
 @LCL
 M=D
 
+//// goto RET ////
 @R14
 A=M
 0;JMP
 // Sys.add12(int n)
 //
 // Returns n+12.
+
+//// FUNCTION ////
 (Sys.add12)
+
 //// push constant 4002 ////
 @4002
 D=A
@@ -591,6 +762,7 @@ M=M+D
 @SP
 M=M+1
 
+//// RETURN ////
 // FRAME = LCL
 // FRAME is R13
 @LCL
@@ -620,30 +792,35 @@ D=M+1
 @SP
 M=D
 
+// Restore THAT of the caller
 @R13
 AM=M-1
 D=M
 @THAT
 M=D
 
+// Restore THIS of the caller
 @R13
 AM=M-1
 D=M
 @THIS
 M=D
 
+// Restore ARG of the caller
 @R13
 AM=M-1
 D=M
 @ARG
 M=D
 
+// Restore LCL of the caller
 @R13
 AM=M-1
 D=M
 @LCL
 M=D
 
+//// goto RET ////
 @R14
 A=M
 0;JMP
