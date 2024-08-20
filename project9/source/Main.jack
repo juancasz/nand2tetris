@@ -1,0 +1,32 @@
+class Main {
+    function void main() {
+        var Target target;
+        var boolean reading_config;
+        var boolean game_running;
+        var int speed;
+        let game_running = true;
+        while (game_running) {
+            let reading_config = true;
+            while (reading_config) {
+                do Output.moveCursor(1, 17);
+                do Output.printString("Welcome to SHOOTING GAME");
+                do Output.moveCursor(3, 10);
+                do Output.printString("Choose a level: 1: easy, 2:medium, 3:hard");
+                do Output.moveCursor(7, 30);
+                let speed = Keyboard.readInt("");
+                if ((speed = 1) | (speed = 2) | (speed = 3)) {
+                    let reading_config = false;
+                } //the higher the speed is, the easier the game will be
+                /* if the player didn't give a valid number, program will ask again*/
+            }
+            do Output.moveCursor(7,20);
+            do Output.printString("Press Spacebar to Shoot");
+            do Sys.wait(1500);
+            do Screen.clearScreen();
+            let game_running = false;
+            let target = Target.new(speed);
+            do target.show_score();
+        }
+        return;
+    }
+}

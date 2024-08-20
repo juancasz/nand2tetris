@@ -1,0 +1,34 @@
+class Target {
+    field int y;
+    field int return_value;
+    field int chance;
+    field in speed;
+    field int current_score;
+
+    constructor Target new(int Aspeed) {
+        /* the speed will determine the speed of the bullet*/
+        let speed = Aspeed;
+        let return_value = 0;
+        let chance = 3;
+        let y = 0;
+        return this;
+    }
+
+    method void show_score() {
+        do Output.moveCursor(3,20);
+        do Output.printString("YOUR CURRENT SCORE IS:");
+        do Output.moveCursor(3,45);
+        do Output.printString("   "); //prevent 100
+        do Output.moveCursor(3,45);
+        do Output.printInt(current_score);
+        do Output.moveCursor(5,20);
+        do Output.printString("YOUR BULLETS LEFT:");
+        do Output.moveCursor(5,40);
+        do Output.printInt(chance);
+        do Output.moveCursor(7, 20);
+        do Output.printString("YOUR TOTAL SCORE IS:");
+        do Output.moveCursor(7, 40);
+        do Output.printInt(return_value);
+        return;
+    }
+}
