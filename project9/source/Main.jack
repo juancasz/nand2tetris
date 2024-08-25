@@ -1,5 +1,6 @@
 class Main {
     function void main() {
+        var Gun gun;
         var Target target;
         var boolean reading_config;
         var boolean game_running;
@@ -26,6 +27,9 @@ class Main {
             let game_running = false;
             let target = Target.new(speed);
             do target.show_score();
+            let gun = Gun.new(0,0,(speed));
+            do target.draw_target(true);
+            do target.move(gun);
         }
         return;
     }
