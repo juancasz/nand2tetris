@@ -5,6 +5,7 @@ class Main {
         var boolean reading_config;
         var boolean game_running;
         var int speed;
+        var int restart;
         let game_running = true;
         while (game_running) {
             let reading_config = true;
@@ -30,6 +31,24 @@ class Main {
             let gun = Gun.new(0,0,(speed));
             do target.draw_target(true);
             do target.move(gun);
+            do Screen.clearScreen();
+            do target.show_final();
+            do Sys.wait(1000);
+
+            do Output.moveCursor(10, 20);
+            do Output.printString("AGAIN? 1: yes, 2: no");
+            do Output.moveCursor(13, 30);
+            let restart =  Keyboard.readInt("");
+            if (~(restart=1)) {
+                do Output.moveCursor(10, 30);
+                do Screen.clearScreen();
+                do Output.printString("BYE");
+                do Sys.wait(2000);
+                do Screen.clearScreen();
+                do Sys.wait(2000);
+                return;
+            }
+            do Screen.clearScreen();
         }
         return;
     }

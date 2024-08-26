@@ -157,4 +157,12 @@ class Target {
         do Sys.wait(10);
         return;
     }
+
+    method void show_final() {
+        do Output.moveCursor(7, 20);
+        do Output.printString("YOUR TOTAL SCORE IS:");
+        do Output.moveCursor(7, 40);
+        do Output.printInt(return_value); 
+        return;
+    }
 }
