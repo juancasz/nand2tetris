@@ -25,7 +25,6 @@ class Main {
             do Output.printString("Press Spacebar to Shoot");
             do Sys.wait(1500);
             do Screen.clearScreen();
-            let game_running = false;
             let target = Target.new(speed);
             do target.show_score();
             let gun = Gun.new(0,0,(speed));
