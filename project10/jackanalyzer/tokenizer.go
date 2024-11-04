@@ -32,6 +32,52 @@ const (
 	STRING_CONST
 )
 
+var keywords = map[string]struct{}{
+	"class":       {},
+	"method":      {},
+	"function":    {},
+	"constructor": {},
+	"int":         {},
+	"boolean":     {},
+	"char":        {},
+	"void":        {},
+	"var":         {},
+	"static":      {},
+	"field":       {},
+	"let":         {},
+	"do":          {},
+	"if":          {},
+	"else":        {},
+	"while":       {},
+	"return":      {},
+	"true":        {},
+	"false":       {},
+	"null":        {},
+	"this":        {},
+}
+
+var symbols = map[string]struct{}{
+	"{": {},
+	"}": {},
+	"(": {},
+	")": {},
+	"[": {},
+	"]": {},
+	".": {},
+	",": {},
+	";": {},
+	"+": {},
+	"-": {},
+	"*": {},
+	"/": {},
+	"&": {},
+	"|": {},
+	"<": {},
+	">": {},
+	"=": {},
+	"~": {},
+}
+
 type token struct {
 	line      string
 	tokenType TokenType
@@ -60,7 +106,10 @@ func (t *Tockenizer) hasMoreTokens() bool {
 	return t.fileScanner.Scan()
 }
 
-func (t *Tockenizer) tokenType() (TokenType, error) {
+func (t *Tockenizer) TokenType() (TokenType, error) {
+	if t.isKeyword() {
+		return KEYWORD, nil
+	}
 	return TokenType(0), nil
 }
 
@@ -86,9 +135,12 @@ func (t *Tockenizer) Advance() error {
 		}
 
 		line = strings.TrimSpace(line)
-
 		if line == "" {
 			continue
+		}
+
+		for _, character := range strings.Fields(line) {
+			t.currentToken.line = character
 		}
 
 		break
@@ -96,6 +148,15 @@ func (t *Tockenizer) Advance() error {
 
 	t.currentToken.line = line
 	return nil
+}
+
+func (t *Tockenizer) isKeyword() bool {
+	for keyword := range keywords {
+		if strings.Contains(t.currentToken.line, keyword) {
+			return true
+		}
+	}
+	return false
 }
 
 func (t *Tockenizer) Close() error {
