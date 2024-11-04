@@ -6,7 +6,9 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strconv"
 	"strings"
+	"unicode"
 )
 
 // file extensions
@@ -17,9 +19,11 @@ const (
 var ErrNoMoreCommands = errors.New("no more commands")
 
 type Tockenizer struct {
-	fileScanner  *bufio.Scanner
-	fileOS       *os.File
-	currentToken token
+	fileScanner    *bufio.Scanner
+	fileOS         *os.File
+	indexCharacter int
+	currentLine    []rune
+	currentToken   token
 }
 
 type TokenType int
@@ -32,54 +36,54 @@ const (
 	STRING_CONST
 )
 
-var keywords = map[string]struct{}{
-	"class":       {},
-	"method":      {},
-	"function":    {},
-	"constructor": {},
-	"int":         {},
-	"boolean":     {},
-	"char":        {},
-	"void":        {},
-	"var":         {},
-	"static":      {},
-	"field":       {},
-	"let":         {},
-	"do":          {},
-	"if":          {},
-	"else":        {},
-	"while":       {},
-	"return":      {},
-	"true":        {},
-	"false":       {},
-	"null":        {},
-	"this":        {},
+var keywords = []string{
+	"class",
+	"method",
+	"function",
+	"constructor",
+	"int",
+	"boolean",
+	"char",
+	"void",
+	"var",
+	"static",
+	"field",
+	"let",
+	"do",
+	"if",
+	"else",
+	"while",
+	"return",
+	"true",
+	"false",
+	"null",
+	"this",
 }
 
-var symbols = map[string]struct{}{
-	"{": {},
-	"}": {},
-	"(": {},
-	")": {},
-	"[": {},
-	"]": {},
-	".": {},
-	",": {},
-	";": {},
-	"+": {},
-	"-": {},
-	"*": {},
-	"/": {},
-	"&": {},
-	"|": {},
-	"<": {},
-	">": {},
-	"=": {},
-	"~": {},
+var symbols = []string{
+	"{",
+	"}",
+	"(",
+	")",
+	"[",
+	"]",
+	".",
+	",",
+	";",
+	"+",
+	"-",
+	"*",
+	"/",
+	"&",
+	"|",
+	"<",
+	">",
+	"=",
+	"~",
 }
 
 type token struct {
-	line      string
+	character string
 	tokenType TokenType
 }
 
@@ -107,13 +111,62 @@ func (t *Tockenizer) hasMoreTokens() bool {
 }
 
 func (t *Tockenizer) TokenType() (TokenType, error) {
+	var tokenType TokenType
+	defer func() {
+		t.currentToken.tokenType = tokenType
+	}()
 	if t.isKeyword() {
-		return KEYWORD, nil
+		tokenType = KEYWORD
+		return tokenType, nil
 	}
-	return TokenType(0), nil
+	if t.isSymbol() {
+		tokenType = SYMBOL
+		return tokenType, nil
+	}
+	if t.isIntConst() {
+		tokenType = INT_CONST
+		return tokenType, nil
+	}
+	if t.isStringConst() {
+		tokenType = STRING_CONST
+		return tokenType, nil
+	}
+	if t.isIdentifier() {
+		tokenType = IDENTIFIER
+		return tokenType, nil
+	}
+	return TokenType(0), fmt.Errorf("invalid token type")
 }
 
 func (t *Tockenizer) Advance() error {
+	if t.currentLine == nil || t.indexCharacter >= len(t.currentLine) {
+		if err := t.advanceLine(); err != nil {
+			return err
+		}
+	}
+
+	tokenType, err := t.TokenType()
+	if err != nil {
+		return err
+	}
+
+	switch tokenType {
+	case KEYWORD:
+		keyword, err := t.Keyword()
+		if err != nil {
+			return err
+		}
+		t.currentToken.character = keyword
+	case SYMBOL:
+	case INT_CONST:
+	case STRING_CONST:
+	case IDENTIFIER:
+	}
+
+	return nil
+}
+
+func (t *Tockenizer) advanceLine() error {
 	var line string
 	for {
 		if !t.hasMoreTokens() {
@@ -139,24 +192,71 @@ func (t *Tockenizer) Advance() error {
 			continue
 		}
 
-		for _, character := range strings.Fields(line) {
-			t.currentToken.line = character
-		}
-
 		break
 	}
 
-	t.currentToken.line = line
+	t.currentLine = []rune(line)
+	t.indexCharacter = 0
 	return nil
 }
 
+func (t *Tockenizer) Keyword() (string, error) {
+	if t.currentToken.tokenType != KEYWORD {
+		return "", fmt.Errorf("token type is not keyword")
+	}
+	init := t.indexCharacter
+	for unicode.IsLetter(t.currentLine[t.indexCharacter]) {
+		t.indexCharacter++
+	}
+	return string(t.currentLine[init:t.indexCharacter]), nil
+}
+
 func (t *Tockenizer) isKeyword() bool {
-	for keyword := range keywords {
-		if strings.Contains(t.currentToken.line, keyword) {
+	for _, keyword := range keywords {
+		if t.lookAhead(len(keyword)) == keyword {
 			return true
 		}
 	}
 	return false
+}
+
+func (t *Tockenizer) isSymbol() bool {
+	for _, symbol := range symbols {
+		if t.lookAhead(1) == symbol {
+			return true
+		}
+	}
+	return false
+}
+
+func (t *Tockenizer) isIntConst() bool {
+	if _, err := strconv.Atoi(t.lookAhead(1)); err == nil {
+		return true
+	}
+	return false
+}
+
+func (t *Tockenizer) isStringConst() bool {
+	if t.lookAhead(1) == `"` {
+		return true
+	}
+	return false
+}
+
+func (t *Tockenizer) isIdentifier() bool {
+	for _, character := range []rune(t.lookAhead(1)) {
+		if unicode.IsLetter(character) {
+			return true
+		}
+	}
+	return false
+}
+
+func (t *Tockenizer) lookAhead(n int) string {
+	if t.indexCharacter+n < len(t.currentLine) {
+		return string(t.currentLine[t.indexCharacter : t.indexCharacter+n])
+	}
+	return string(t.currentLine[t.indexCharacter:])
 }
 
 func (t *Tockenizer) Close() error {
