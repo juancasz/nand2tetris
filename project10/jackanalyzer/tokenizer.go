@@ -158,6 +158,11 @@ func (t *Tockenizer) Advance() error {
 		}
 		t.currentToken.character = keyword
 	case SYMBOL:
+		symbol, err := t.Symbol()
+		if err != nil {
+			return err
+		}
+		t.currentToken.character = symbol
 	case INT_CONST:
 	case STRING_CONST:
 	case IDENTIFIER:
@@ -209,6 +214,15 @@ func (t *Tockenizer) Keyword() (string, error) {
 		t.indexCharacter++
 	}
 	return string(t.currentLine[init:t.indexCharacter]), nil
+}
+
+func (t *Tockenizer) Symbol() (string, error) {
+	if t.currentToken.tokenType != SYMBOL {
+		return "", fmt.Errorf("token type is not symbol")
+	}
+
+	t.indexCharacter++
+	return t.lookAhead(1), nil
 }
 
 func (t *Tockenizer) isKeyword() bool {
