@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"log"
 	"os"
 	"path/filepath"
 	"strconv"
@@ -35,6 +36,10 @@ const (
 	INT_CONST
 	STRING_CONST
 )
+
+func (t TokenType) String() string {
+	return []string{"KEYWORD", "SYMBOL", "IDENTIFIER", "INT_CONST", "STRING_CONST"}[t]
+}
 
 var keywords = []string{
 	"class",
@@ -185,6 +190,8 @@ func (t *Tockenizer) Advance() error {
 		t.currentToken.character = identifier
 	}
 
+	log.Printf("%s - %s", t.currentToken.character, t.currentToken.tokenType.String())
+
 	return nil
 }
 
@@ -238,8 +245,9 @@ func (t *Tockenizer) Symbol() (string, error) {
 		return "", fmt.Errorf("token type is not symbol")
 	}
 
+	symbol := t.lookAhead(1)
 	t.indexCharacter++
-	return t.lookAhead(1), nil
+	return symbol, nil
 }
 
 func (t *Tockenizer) IntVal() (string, error) {
@@ -285,7 +293,7 @@ func (t *Tockenizer) Identifier() (string, error) {
 }
 
 func (t *Tockenizer) space() {
-	for t.lookAhead(1) == "" {
+	for t.lookAhead(1) == " " {
 		t.indexCharacter++
 	}
 }
@@ -296,6 +304,7 @@ func (t *Tockenizer) isKeyword() bool {
 			return true
 		}
 	}
+
 	return false
 }
 
@@ -332,7 +341,8 @@ func (t *Tockenizer) isIdentifier() bool {
 }
 
 func (t *Tockenizer) lookAhead(n int) string {
-	if t.indexCharacter+n < len(t.currentLine) {
+	//log.Println("index", t.indexCharacter)
+	if t.indexCharacter+n <= len(t.currentLine) {
 		return string(t.currentLine[t.indexCharacter : t.indexCharacter+n])
 	}
 	return string(t.currentLine[t.indexCharacter:])
