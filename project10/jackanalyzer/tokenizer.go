@@ -145,6 +145,8 @@ func (t *Tockenizer) Advance() error {
 		}
 	}
 
+	t.space()
+
 	tokenType, err := t.TokenType()
 	if err != nil {
 		return err
@@ -170,7 +172,17 @@ func (t *Tockenizer) Advance() error {
 		}
 		t.currentToken.character = intConst
 	case STRING_CONST:
+		stringConst, err := t.StringVal()
+		if err != nil {
+			return err
+		}
+		t.currentToken.character = stringConst
 	case IDENTIFIER:
+		identifier, err := t.Identifier()
+		if err != nil {
+			return err
+		}
+		t.currentToken.character = identifier
 	}
 
 	return nil
@@ -232,7 +244,7 @@ func (t *Tockenizer) Symbol() (string, error) {
 
 func (t *Tockenizer) IntVal() (string, error) {
 	if t.currentToken.tokenType != INT_CONST {
-		return "", fmt.Errorf("token type is not symbol")
+		return "", fmt.Errorf("token type is not int const")
 	}
 
 	init := t.indexCharacter
@@ -244,6 +256,38 @@ func (t *Tockenizer) IntVal() (string, error) {
 	}
 
 	return string(t.currentLine[init:t.indexCharacter]), nil
+}
+
+func (t *Tockenizer) StringVal() (string, error) {
+	if t.currentToken.tokenType != STRING_CONST {
+		return "", fmt.Errorf("token type is not string const")
+	}
+
+	t.indexCharacter++ // skip leading '"'
+	init := t.indexCharacter
+	for t.lookAhead(1) != `"` {
+		t.indexCharacter++
+	}
+	t.indexCharacter++ // skip trailing '"'
+	return string(t.currentLine[init : t.indexCharacter-1]), nil
+}
+
+func (t *Tockenizer) Identifier() (string, error) {
+	if t.currentToken.tokenType != IDENTIFIER {
+		return "", fmt.Errorf("token type is not identifier")
+	}
+
+	init := t.indexCharacter
+	for unicode.IsLetter(t.currentLine[t.indexCharacter]) || string(t.currentLine[t.indexCharacter]) == "_" {
+		t.indexCharacter++
+	}
+	return string(t.currentLine[init:t.indexCharacter]), nil
+}
+
+func (t *Tockenizer) space() {
+	for t.lookAhead(1) == "" {
+		t.indexCharacter++
+	}
 }
 
 func (t *Tockenizer) isKeyword() bool {
@@ -280,7 +324,7 @@ func (t *Tockenizer) isStringConst() bool {
 
 func (t *Tockenizer) isIdentifier() bool {
 	for _, character := range []rune(t.lookAhead(1)) {
-		if unicode.IsLetter(character) {
+		if unicode.IsLetter(character) || string(character) == "_" {
 			return true
 		}
 	}
