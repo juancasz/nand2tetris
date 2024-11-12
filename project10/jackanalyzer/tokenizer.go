@@ -24,7 +24,7 @@ type Tockenizer struct {
 	fileOS         *os.File
 	indexCharacter int
 	currentLine    []rune
-	currentToken   token
+	currentToken   Token
 }
 
 type TokenType int
@@ -87,9 +87,9 @@ var symbols = []string{
 	"~",
 }
 
-type token struct {
-	character string
-	tokenType TokenType
+type Token struct {
+	Character string
+	TokenType TokenType
 }
 
 func NewTockenizer(inputFile string) (*Tockenizer, error) {
@@ -118,7 +118,7 @@ func (t *Tockenizer) hasMoreTokens() bool {
 func (t *Tockenizer) TokenType() (TokenType, error) {
 	var tokenType TokenType
 	defer func() {
-		t.currentToken.tokenType = tokenType
+		t.currentToken.TokenType = tokenType
 	}()
 	if t.isKeyword() {
 		tokenType = KEYWORD
@@ -163,34 +163,34 @@ func (t *Tockenizer) Advance() error {
 		if err != nil {
 			return err
 		}
-		t.currentToken.character = keyword
+		t.currentToken.Character = keyword
 	case SYMBOL:
 		symbol, err := t.Symbol()
 		if err != nil {
 			return err
 		}
-		t.currentToken.character = symbol
+		t.currentToken.Character = symbol
 	case INT_CONST:
 		intConst, err := t.IntVal()
 		if err != nil {
 			return err
 		}
-		t.currentToken.character = intConst
+		t.currentToken.Character = intConst
 	case STRING_CONST:
 		stringConst, err := t.StringVal()
 		if err != nil {
 			return err
 		}
-		t.currentToken.character = stringConst
+		t.currentToken.Character = stringConst
 	case IDENTIFIER:
 		identifier, err := t.Identifier()
 		if err != nil {
 			return err
 		}
-		t.currentToken.character = identifier
+		t.currentToken.Character = identifier
 	}
 
-	log.Printf("%s - %s", t.currentToken.character, t.currentToken.tokenType.String())
+	log.Printf("%s - %s", t.currentToken.Character, t.currentToken.TokenType.String())
 
 	return nil
 }
@@ -230,7 +230,7 @@ func (t *Tockenizer) advanceLine() error {
 }
 
 func (t *Tockenizer) Keyword() (string, error) {
-	if t.currentToken.tokenType != KEYWORD {
+	if t.currentToken.TokenType != KEYWORD {
 		return "", fmt.Errorf("token type is not keyword")
 	}
 	init := t.indexCharacter
@@ -241,7 +241,7 @@ func (t *Tockenizer) Keyword() (string, error) {
 }
 
 func (t *Tockenizer) Symbol() (string, error) {
-	if t.currentToken.tokenType != SYMBOL {
+	if t.currentToken.TokenType != SYMBOL {
 		return "", fmt.Errorf("token type is not symbol")
 	}
 
@@ -251,7 +251,7 @@ func (t *Tockenizer) Symbol() (string, error) {
 }
 
 func (t *Tockenizer) IntVal() (string, error) {
-	if t.currentToken.tokenType != INT_CONST {
+	if t.currentToken.TokenType != INT_CONST {
 		return "", fmt.Errorf("token type is not int const")
 	}
 
@@ -267,7 +267,7 @@ func (t *Tockenizer) IntVal() (string, error) {
 }
 
 func (t *Tockenizer) StringVal() (string, error) {
-	if t.currentToken.tokenType != STRING_CONST {
+	if t.currentToken.TokenType != STRING_CONST {
 		return "", fmt.Errorf("token type is not string const")
 	}
 
@@ -281,7 +281,7 @@ func (t *Tockenizer) StringVal() (string, error) {
 }
 
 func (t *Tockenizer) Identifier() (string, error) {
-	if t.currentToken.tokenType != IDENTIFIER {
+	if t.currentToken.TokenType != IDENTIFIER {
 		return "", fmt.Errorf("token type is not identifier")
 	}
 
@@ -341,11 +341,14 @@ func (t *Tockenizer) isIdentifier() bool {
 }
 
 func (t *Tockenizer) lookAhead(n int) string {
-	//log.Println("index", t.indexCharacter)
 	if t.indexCharacter+n <= len(t.currentLine) {
 		return string(t.currentLine[t.indexCharacter : t.indexCharacter+n])
 	}
 	return string(t.currentLine[t.indexCharacter:])
+}
+
+func (t *Tockenizer) CurrentToken() Token {
+	return t.currentToken
 }
 
 func (t *Tockenizer) Close() error {
