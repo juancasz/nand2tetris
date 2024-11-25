@@ -3,10 +3,8 @@ package jackanalyzer
 import "encoding/xml"
 
 type class struct {
-	Name       xml.Name `xml:"class"`
-	Keyword    string   `xml:"keyword"`
-	Identifier string   `xml:"identifier"`
-	Symbol     string   `xml:"symbol"`
+	Name     xml.Name      `xml:"class"`
+	Elements []interface{} `xml:",any"`
 }
 
 type classVarDec struct {
