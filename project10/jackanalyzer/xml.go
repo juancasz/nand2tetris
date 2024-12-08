@@ -12,9 +12,19 @@ type classVarDec struct {
 	Elements []interface{} `xml:",any"`
 }
 
+type subroutineDec struct {
+	Name     xml.Name      `xml:"subroutineDec"`
+	Elements []interface{} `xml:",any"`
+}
+
+type parameterList struct {
+	Name     xml.Name      `xml:"parameterList"`
+	Elements []interface{} `xml:",any"`
+}
+
 type Element struct {
-	XMLName xml.Name `xml:"keyword"`
-	Value   string   `xml:",chardata"`
+	XMLName xml.Name
+	Value   string `xml:",chardata"`
 }
 
 type Keyword struct {

@@ -63,7 +63,7 @@ func (e *Engine) CompileClass() error {
 		return err
 	}
 	for {
-		if !valueInTable(token.Character, classVarDecTypes) {
+		if !valueInTable(e.CurrentToken().Character, classVarDecTypes) {
 			break
 		}
 		classVarDec, err := e.CompileClassVarDec()
@@ -71,6 +71,17 @@ func (e *Engine) CompileClass() error {
 			return err
 		}
 		c.Elements = append(c.Elements, classVarDec)
+	}
+
+	// Parse subroutineDec
+	if err := e.Tockenizer.Advance(); err != nil {
+		return err
+	}
+	for {
+		if !valueInTable(e.CurrentToken().Character, subroutineDecType) {
+			break
+		}
+
 	}
 
 	return nil
@@ -95,7 +106,7 @@ func (e *Engine) CompileClassVarDec() (classVarDec, error) {
 	if err := e.Tockenizer.Advance(); err != nil {
 		return classVarDec{}, err
 	}
-	c.Elements = append(c.Elements, Element{XMLName: xml.Name{Local: token.TokenType.String()}, Value: token.Character})
+	c.Elements = append(c.Elements, Element{XMLName: xml.Name{Local: token.TokenType.String()}, Value: e.CurrentToken().Character})
 
 	// Parse var names
 	if err := e.Tockenizer.Advance(); err != nil {
@@ -105,7 +116,7 @@ func (e *Engine) CompileClassVarDec() (classVarDec, error) {
 		if err := e.checkTokenType(token, IDENTIFIER); err != nil {
 			return classVarDec{}, err
 		}
-		c.Elements = append(c.Elements, Identifier{Value: token.Character})
+		c.Elements = append(c.Elements, Identifier{Value: e.CurrentToken().Character})
 
 		if err := e.Tockenizer.Advance(); err != nil {
 			return classVarDec{}, err
@@ -113,7 +124,7 @@ func (e *Engine) CompileClassVarDec() (classVarDec, error) {
 
 		// check if multiple variables are being declared
 		if token.Character == "," {
-			c.Elements = append(c.Elements, Symbol{Value: token.Character})
+			c.Elements = append(c.Elements, Symbol{Value: e.CurrentToken().Character})
 			if err := e.Tockenizer.Advance(); err != nil {
 				return classVarDec{}, err
 			}
@@ -122,7 +133,7 @@ func (e *Engine) CompileClassVarDec() (classVarDec, error) {
 
 		// check if the classVarDec has ended
 		if token.Character == ";" {
-			c.Elements = append(c.Elements, Symbol{Value: token.Character})
+			c.Elements = append(c.Elements, Symbol{Value: e.CurrentToken().Character})
 			break
 		}
 
@@ -130,6 +141,97 @@ func (e *Engine) CompileClassVarDec() (classVarDec, error) {
 	}
 
 	return c, nil
+}
+
+func (e *Engine) CompileSubroutineDec() (subroutineDec, error) {
+	s := subroutineDec{}
+
+	// Parse constructor | function | method
+	token := e.Tockenizer.CurrentToken()
+	if err := e.checkTokenType(token, KEYWORD); err != nil {
+		return subroutineDec{}, err
+	}
+	if !valueInTable(token.Character, subroutineDecType) {
+		return subroutineDec{}, fmt.Errorf("subroutineDec does not start with constructor, function or method")
+	}
+	s.Elements = []interface{}{
+		Keyword{Value: token.Character},
+	}
+
+	// Parse void | type
+	if err := e.Tockenizer.Advance(); err != nil {
+		return subroutineDec{}, err
+	}
+	s.Elements = append(s.Elements, Element{XMLName: xml.Name{Local: token.TokenType.String()}, Value: e.CurrentToken().Character})
+
+	// Parse subroutine name
+	if err := e.Tockenizer.Advance(); err != nil {
+		return subroutineDec{}, err
+	}
+	s.Elements = append(s.Elements, Identifier{Value: e.CurrentToken().Character})
+
+	// Parse (
+	if err := e.Tockenizer.Advance(); err != nil {
+		return subroutineDec{}, err
+	}
+	if err := e.checkTokenType(e.CurrentToken(), SYMBOL); err != nil {
+		return subroutineDec{}, err
+	}
+	if e.CurrentToken().Character != "(" {
+		return subroutineDec{}, fmt.Errorf("missing ( in subroutine Dec")
+	}
+
+	// Parse parameter list
+	if err := e.Tockenizer.Advance(); err != nil {
+		return subroutineDec{}, err
+	}
+	parameterList, err := e.CompileParameterList()
+	if err != nil {
+		return subroutineDec{}, err
+	}
+	s.Elements = append(s.Elements, parameterList)
+
+	return s, nil
+}
+
+func (e *Engine) CompileParameterList() (parameterList, error) {
+	p := parameterList{}
+	for {
+		if e.CurrentToken().TokenType != KEYWORD && e.CurrentToken().TokenType != SYMBOL {
+			break
+		}
+
+		// parse keyword
+		if err := e.checkTokenType(e.CurrentToken(), KEYWORD); err != nil {
+			return parameterList{}, err
+		}
+		if !valueInTable(e.CurrentToken().Character, varTypes) {
+			return parameterList{}, fmt.Errorf("invalid types in parameter list")
+		}
+		p.Elements = append(p.Elements, Keyword{Value: e.CurrentToken().Character})
+
+		// parse identifier
+		if err := e.Tockenizer.Advance(); err != nil {
+			return parameterList{}, err
+		}
+		if err := e.checkTokenType(e.CurrentToken(), IDENTIFIER); err != nil {
+			return parameterList{}, err
+		}
+		p.Elements = append(p.Elements, Identifier{Value: e.CurrentToken().Character})
+
+		// look for ,
+		if err := e.Tockenizer.Advance(); err != nil {
+			return parameterList{}, err
+		}
+		if e.CurrentToken().Character == "," {
+			p.Elements = append(p.Elements, Symbol{Value: e.CurrentToken().Character})
+			if err := e.Tockenizer.Advance(); err != nil {
+				return parameterList{}, err
+			}
+		}
+
+	}
+	return p, nil
 }
 
 func (e *Engine) checkTokenType(token Token, tokenType TokenType) error {
