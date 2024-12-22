@@ -17,6 +17,16 @@ type subroutineDec struct {
 	Elements []interface{} `xml:",any"`
 }
 
+type subroutineBody struct {
+	Name     xml.Name      `xml:"subroutineBody"`
+	Elements []interface{} `xml:",any"`
+}
+
+type varDec struct {
+	Name     xml.Name      `xml:"varDec"`
+	Elements []interface{} `xml:",any"`
+}
+
 type parameterList struct {
 	Name     xml.Name      `xml:"parameterList"`
 	Elements []interface{} `xml:",any"`
