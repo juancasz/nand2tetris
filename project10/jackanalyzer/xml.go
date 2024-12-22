@@ -51,3 +51,8 @@ type Identifier struct {
 	XMLName xml.Name `xml:"identifier"`
 	Value   string   `xml:",chardata"`
 }
+
+type Statements struct {
+	XMLName xml.Name `xml:"statements"`
+	Value   string   `xml:",chardata"`
+}

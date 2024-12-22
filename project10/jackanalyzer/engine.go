@@ -330,6 +330,10 @@ func (e *Engine) CompileParameterList() (parameterList, error) {
 	return p, nil
 }
 
+func (e *Engine) CompileStatements() (Statements, error) {
+	return Statements{}, nil
+}
+
 func (e *Engine) checkTokenType(token Token, tokenType TokenType) error {
 	if token.TokenType != tokenType {
 		return fmt.Errorf("%s was not found", tokenType.String())
