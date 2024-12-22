@@ -74,15 +74,26 @@ func (e *Engine) CompileClass() error {
 	}
 
 	// Parse subroutineDec
-	if err := e.Tockenizer.Advance(); err != nil {
-		return err
-	}
 	for {
 		if !valueInTable(e.CurrentToken().Character, subroutineDecType) {
 			break
 		}
-
+		subroutineDec, err := e.CompileSubroutineDec()
+		if err != nil {
+			return err
+		}
+		c.Elements = append(c.Elements, subroutineDec)
 	}
+
+	// Parse } closing class
+	if err := e.checkTokenType(token, SYMBOL); err != nil {
+		return err
+	}
+	token = e.Tockenizer.CurrentToken()
+	if token.Character != "}" {
+		return fmt.Errorf("missing { symbol")
+	}
+	c.Elements = append(c.Elements, Symbol{Value: token.Character})
 
 	return nil
 }
