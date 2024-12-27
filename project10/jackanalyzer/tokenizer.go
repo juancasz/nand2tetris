@@ -325,10 +325,7 @@ func (t *Tockenizer) isIntConst() bool {
 }
 
 func (t *Tockenizer) isStringConst() bool {
-	if t.lookAhead(1) == `"` {
-		return true
-	}
-	return false
+	return t.lookAhead(1) == `"`
 }
 
 func (t *Tockenizer) isIdentifier() bool {
