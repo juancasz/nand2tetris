@@ -214,18 +214,36 @@ func (e *Engine) CompileSubroutineBody() (subroutineBody, error) {
 	if err := e.checkTokenType(token, SYMBOL); err != nil {
 		return subroutineBody{}, err
 	}
-	token = e.Tockenizer.CurrentToken()
 	if token.Character != "{" {
 		return subroutineBody{}, fmt.Errorf("missing { symbol")
 	}
 	s.Elements = []interface{}{Symbol{Value: token.Character}}
 
 	// parse var dec
-	varDec, err := e.CompileVarDec()
+	if err := e.Tockenizer.Advance(); err != nil {
+		return subroutineBody{}, err
+	}
+	for {
+		if e.CurrentToken().Character == "var" {
+			varDec, err := e.CompileVarDec()
+			if err != nil {
+				return subroutineBody{}, err
+			}
+			s.Elements = append(s.Elements, varDec)
+			if err := e.Tockenizer.Advance(); err != nil {
+				return subroutineBody{}, err
+			}
+			continue
+		}
+		break
+	}
+
+	// parse statements
+	statements, err := e.CompileStatements()
 	if err != nil {
 		return subroutineBody{}, err
 	}
-	s.Elements = append(s.Elements, varDec)
+	s.Elements = append(s.Elements, statements)
 
 	// Parse } closing
 	token = e.CurrentToken()
