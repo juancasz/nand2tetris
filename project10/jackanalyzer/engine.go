@@ -349,7 +349,66 @@ func (e *Engine) CompileParameterList() (parameterList, error) {
 }
 
 func (e *Engine) CompileStatements() (Statements, error) {
-	return Statements{}, nil
+	s := Statements{}
+	s.Elements = []interface{}{}
+loop:
+	for {
+		switch e.CurrentToken().Character {
+		case "let":
+			let, err := e.CompileLet()
+			if err != nil {
+				return Statements{}, nil
+			}
+			s.Elements = append(s.Elements, let)
+		case "if":
+			ifStatement, err := e.CompileIf()
+			if err != nil {
+				return Statements{}, nil
+			}
+			s.Elements = append(s.Elements, ifStatement)
+		case "while":
+			while, err := e.CompileWhile()
+			if err != nil {
+				return Statements{}, nil
+			}
+			s.Elements = append(s.Elements, while)
+		case "do":
+			do, err := e.CompileDo()
+			if err != nil {
+				return Statements{}, nil
+			}
+			s.Elements = append(s.Elements, do)
+		case "return":
+			returnStatement, err := e.CompileReturn()
+			if err != nil {
+				return Statements{}, nil
+			}
+			s.Elements = append(s.Elements, returnStatement)
+		default:
+			break loop
+		}
+	}
+	return s, nil
+}
+
+func (e *Engine) CompileDo() (Do, error) {
+	return Do{}, nil
+}
+
+func (e *Engine) CompileLet() (Let, error) {
+	return Let{}, nil
+}
+
+func (e *Engine) CompileIf() (If, error) {
+	return If{}, nil
+}
+
+func (e *Engine) CompileWhile() (While, error) {
+	return While{}, nil
+}
+
+func (e *Engine) CompileReturn() (Return, error) {
+	return Return{}, nil
 }
 
 func (e *Engine) checkTokenType(token Token, tokenType TokenType) error {

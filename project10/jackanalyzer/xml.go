@@ -53,6 +53,31 @@ type Identifier struct {
 }
 
 type Statements struct {
-	XMLName xml.Name `xml:"statements"`
+	XMLName  xml.Name      `xml:"statements"`
+	Elements []interface{} `xml:",any"`
+}
+
+type Do struct {
+	XMLName xml.Name `xml:"do"`
+	Value   string   `xml:",chardata"`
+}
+
+type Let struct {
+	XMLName xml.Name `xml:"let"`
+	Value   string   `xml:",chardata"`
+}
+
+type If struct {
+	XMLName xml.Name `xml:"if"`
+	Value   string   `xml:",chardata"`
+}
+
+type While struct {
+	XMLName xml.Name `xml:"while"`
+	Value   string   `xml:",chardata"`
+}
+
+type Return struct {
+	XMLName xml.Name `xml:"return"`
 	Value   string   `xml:",chardata"`
 }
