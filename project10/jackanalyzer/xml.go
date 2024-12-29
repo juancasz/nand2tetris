@@ -58,8 +58,23 @@ type Statements struct {
 }
 
 type Do struct {
-	XMLName xml.Name `xml:"do"`
-	Value   string   `xml:",chardata"`
+	XMLName  xml.Name      `xml:"do"`
+	Elements []interface{} `xml:",any"`
+}
+
+type SubroutineCall struct {
+	XMLName  xml.Name      `xml:"subroutineCall"`
+	Elements []interface{} `xml:",any"`
+}
+
+type ExpressionList struct {
+	XMLName  xml.Name      `xml:"expressionList"`
+	Elements []interface{} `xml:",any"`
+}
+
+type Expression struct {
+	XMLName  xml.Name      `xml:"expression"`
+	Elements []interface{} `xml:",any"`
 }
 
 type Let struct {

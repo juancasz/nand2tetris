@@ -392,7 +392,40 @@ loop:
 }
 
 func (e *Engine) CompileDo() (Do, error) {
-	return Do{}, nil
+	d := Do{}
+
+	// parse do
+	if err := e.checkTokenType(e.CurrentToken(), KEYWORD); err != nil {
+		return Do{}, err
+	}
+	if e.CurrentToken().Character != "do" {
+		return Do{}, fmt.Errorf("missing do keyword")
+	}
+	d.Elements = []interface{}{Keyword{Value: e.CurrentToken().Character}}
+
+	// parse subroutineCall
+	if err := e.Tockenizer.Advance(); err != nil {
+		return Do{}, err
+	}
+	subroutineCall, err := e.CompileSubroutineCall()
+	if err != nil {
+		return Do{}, err
+	}
+	d.Elements = append(d.Elements, subroutineCall)
+
+	// parse ;
+	if err := e.Tockenizer.Advance(); err != nil {
+		return Do{}, err
+	}
+	if err := e.checkTokenType(e.CurrentToken(), SYMBOL); err != nil {
+		return Do{}, err
+	}
+	if e.CurrentToken().Character != ";" {
+		return Do{}, fmt.Errorf("missing ; in do statement")
+	}
+	d.Elements = append(d.Elements, Symbol{Value: e.CurrentToken().Character})
+
+	return d, nil
 }
 
 func (e *Engine) CompileLet() (Let, error) {
@@ -409,6 +442,112 @@ func (e *Engine) CompileWhile() (While, error) {
 
 func (e *Engine) CompileReturn() (Return, error) {
 	return Return{}, nil
+}
+
+func (e *Engine) CompileSubroutineCall() (SubroutineCall, error) {
+	s := SubroutineCall{}
+
+	//parse subroutine name | parse (className | varName)
+	if err := e.checkTokenType(e.CurrentToken(), IDENTIFIER); err != nil {
+		return SubroutineCall{}, err
+	}
+	s.Elements = []interface{}{Identifier{Value: e.CurrentToken().Character}}
+
+	if err := e.Tockenizer.Advance(); err != nil {
+		return SubroutineCall{}, err
+	}
+	// parse . if present
+	if e.CurrentToken().Character == "." {
+		s.Elements = append(s.Elements, Symbol{Value: e.CurrentToken().Character})
+
+		// parse (
+		if err := e.Tockenizer.Advance(); err != nil {
+			return SubroutineCall{}, err
+		}
+		if err := e.checkTokenType(e.CurrentToken(), SYMBOL); err != nil {
+			return SubroutineCall{}, err
+		}
+		if e.CurrentToken().Character != "(" {
+			return SubroutineCall{}, fmt.Errorf("missing ( in subroutine call")
+		}
+
+		// parse expression list
+		if err := e.Tockenizer.Advance(); err != nil {
+			return SubroutineCall{}, err
+		}
+		expressionList, err := e.CompileExpressionList()
+		if err != nil {
+			return SubroutineCall{}, err
+		}
+		s.Elements = append(s.Elements, expressionList)
+
+		// parse )
+		if err := e.Tockenizer.Advance(); err != nil {
+			return SubroutineCall{}, err
+		}
+		if err := e.checkTokenType(e.CurrentToken(), SYMBOL); err != nil {
+			return SubroutineCall{}, err
+		}
+		if e.CurrentToken().Character != ")" {
+			return SubroutineCall{}, fmt.Errorf("missing ) in subroutine call")
+		}
+	} else {
+		// parse (
+		if err := e.checkTokenType(e.CurrentToken(), SYMBOL); err != nil {
+			return SubroutineCall{}, err
+		}
+		if e.CurrentToken().Character != "(" {
+			return SubroutineCall{}, fmt.Errorf("missing ( in subroutine call")
+		}
+
+		// parse expression list
+		if err := e.Tockenizer.Advance(); err != nil {
+			return SubroutineCall{}, err
+		}
+		expressionList, err := e.CompileExpressionList()
+		if err != nil {
+			return SubroutineCall{}, err
+		}
+		s.Elements = append(s.Elements, expressionList)
+
+		// parse )
+		if err := e.Tockenizer.Advance(); err != nil {
+			return SubroutineCall{}, err
+		}
+		if err := e.checkTokenType(e.CurrentToken(), SYMBOL); err != nil {
+			return SubroutineCall{}, err
+		}
+		if e.CurrentToken().Character != ")" {
+			return SubroutineCall{}, fmt.Errorf("missing ) in subroutine call")
+		}
+	}
+
+	return s, nil
+}
+
+func (e *Engine) CompileExpressionList() (ExpressionList, error) {
+	expressionList := ExpressionList{}
+
+	// parse expression
+	expression, err := e.CompileExpression()
+	if err != nil {
+		return ExpressionList{}, err
+	}
+	expressionList.Elements = []interface{}{expression}
+
+	// iterate over expressions
+	if err := e.Tockenizer.Advance(); err != nil {
+		return ExpressionList{}, err
+	}
+	for {
+		// draft
+	}
+
+	return expressionList, nil
+}
+
+func (e *Engine) CompileExpression() (Expression, error) {
+	panic("implement me")
 }
 
 func (e *Engine) checkTokenType(token Token, tokenType TokenType) error {
